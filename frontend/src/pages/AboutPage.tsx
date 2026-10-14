@@ -33,7 +33,7 @@ export function AboutPage() {
 
         <div className="rounded-2xl overflow-hidden border border-teal-500/20 shadow-2xl">
           <img
-            src="/docs/images/the_living_loom.jpg"
+            src={`${import.meta.env.BASE_URL}the_living_loom.jpg`}
             alt="The Living Loom Visualization"
             className="w-full h-80 object-cover"
           />

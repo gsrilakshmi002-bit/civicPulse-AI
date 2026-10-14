@@ -156,13 +156,9 @@ export function LandingPage({ onNavigate, analytics }: LandingPageProps) {
           </div>
           <div className="relative group overflow-hidden rounded-2xl border border-teal-500/30 shadow-2xl">
             <img
-              src="/docs/images/the_living_loom.jpg"
+              src={`${import.meta.env.BASE_URL}the_living_loom.jpg`}
               alt="The Living Loom"
               className="w-full h-64 object-cover group-hover:scale-105 transition-transform duration-500"
-              onError={(e) => {
-                // fallback if relative path needs absolute
-                (e.target as HTMLElement).style.display = 'none';
-              }}
             />
             <div className="absolute inset-0 bg-gradient-to-t from-slate-950/80 via-transparent to-transparent flex items-end p-4">
               <p className="text-xs text-white font-medium">
