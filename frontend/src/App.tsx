@@ -1,122 +1,164 @@
-import { useState } from 'react'
-import heroImg from './assets/hero.png'
-import reactLogo from './assets/react.svg'
-import viteLogo from './assets/vite.svg'
-import './App.css'
+import React, { useState, useEffect } from "react";
+import { Navbar } from "./components/Navbar";
+import { Sidebar } from "./components/Sidebar";
+import { LandingPage } from "./pages/LandingPage";
+import { CitizenDashboard } from "./pages/CitizenDashboard";
+import { SubmitComplaintPage } from "./pages/SubmitComplaintPage";
+import { TrackComplaintPage } from "./pages/TrackComplaintPage";
+import { CommunityExplorerPage } from "./pages/CommunityExplorerPage";
+import { AnalyticsDashboardPage } from "./pages/AnalyticsDashboardPage";
+import { AdminDashboardPage } from "./pages/AdminDashboardPage";
+import { AssistantPage } from "./pages/AssistantPage";
+import { EnvironmentalPage } from "./pages/EnvironmentalPage";
+import { AboutPage } from "./pages/AboutPage";
+import { Complaint, AnalyticsSummary, PredictiveData, EnvironmentalData, UserRole } from "./types";
+import { fetchComplaints, fetchAnalytics, fetchPredictive, fetchEnvironmental } from "./api";
 
-function App() {
-  const [count, setCount] = useState(0)
+export function App() {
+  const [currentPage, setCurrentPage] = useState<string>("landing");
+  const [currentRole, setCurrentRole] = useState<UserRole>("citizen");
+  const [isDark, setIsDark] = useState<boolean>(true);
+  const [navParams, setNavParams] = useState<any>({});
+
+  const [complaints, setComplaints] = useState<Complaint[]>([]);
+  const [analytics, setAnalytics] = useState<AnalyticsSummary | null>(null);
+  const [predictive, setPredictive] = useState<PredictiveData | null>(null);
+  const [environmental, setEnvironmental] = useState<EnvironmentalData | null>(null);
+  const [loading, setLoading] = useState<boolean>(true);
+
+  const loadAllData = async () => {
+    try {
+      const [comps, anal, pred, env] = await Promise.all([
+        fetchComplaints(),
+        fetchAnalytics().catch(() => null),
+        fetchPredictive().catch(() => null),
+        fetchEnvironmental().catch(() => null),
+      ]);
+      setComplaints(comps);
+      setAnalytics(anal);
+      setPredictive(pred);
+      setEnvironmental(env);
+    } catch (err) {
+      console.error("Error loading data:", err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    loadAllData();
+  }, []);
+
+  const handleNavigate = (page: string, params?: any) => {
+    setCurrentPage(page);
+    if (params) setNavParams(params);
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
+  const handleRoleChange = (role: UserRole) => {
+    setCurrentRole(role);
+    if (role === "admin") {
+      setCurrentPage("admin");
+    } else if (role === "analyst") {
+      setCurrentPage("analytics");
+    } else {
+      setCurrentPage("citizen");
+    }
+  };
+
+  const toggleTheme = () => {
+    setIsDark(!isDark);
+    if (!isDark) {
+      document.documentElement.classList.remove("light");
+    } else {
+      document.documentElement.classList.add("light");
+    }
+  };
 
   return (
-    <>
-      <section id="center">
-        <div className="hero">
-          <img src={heroImg} className="base" width="170" height="179" alt="" />
-          <img src={reactLogo} className="framework" alt="React logo" />
-          <img src={viteLogo} className="vite" alt="Vite logo" />
-        </div>
-        <div>
-          <h1>Get started</h1>
-          <p>
-            Edit <code>src/App.tsx</code> and save to test <code>HMR</code>
-          </p>
-        </div>
-        <button
-          type="button"
-          className="counter"
-          onClick={() => setCount((count) => count + 1)}
-        >
-          Count is {count}
-        </button>
-      </section>
+    <div className={`min-h-screen flex flex-col ${isDark ? "" : "light"}`}>
+      <Navbar
+        currentRole={currentRole}
+        onRoleChange={handleRoleChange}
+        isDark={isDark}
+        onToggleTheme={toggleTheme}
+        onNavigate={handleNavigate}
+        currentPage={currentPage}
+      />
 
-      <div className="ticks"></div>
+      <div className="flex-1 flex max-w-7xl w-full mx-auto">
+        <Sidebar
+          currentPage={currentPage}
+          onNavigate={handleNavigate}
+          role={currentRole}
+        />
 
-      <section id="next-steps">
-        <div id="docs">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#documentation-icon"></use>
-          </svg>
-          <h2>Documentation</h2>
-          <p>Your questions, answered</p>
-          <ul>
-            <li>
-              <a href="https://vite.dev/" target="_blank">
-                <img className="logo" src={viteLogo} alt="" />
-                Explore Vite
-              </a>
-            </li>
-            <li>
-              <a href="https://react.dev/" target="_blank">
-                <img className="button-icon" src={reactLogo} alt="" />
-                Learn more
-              </a>
-            </li>
-          </ul>
-        </div>
-        <div id="social">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#social-icon"></use>
-          </svg>
-          <h2>Connect with us</h2>
-          <p>Join the Vite community</p>
-          <ul>
-            <li>
-              <a href="https://github.com/vitejs/vite" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#github-icon"></use>
-                </svg>
-                GitHub
-              </a>
-            </li>
-            <li>
-              <a href="https://chat.vite.dev/" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#discord-icon"></use>
-                </svg>
-                Discord
-              </a>
-            </li>
-            <li>
-              <a href="https://x.com/vite_js" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#x-icon"></use>
-                </svg>
-                X.com
-              </a>
-            </li>
-            <li>
-              <a href="https://bsky.app/profile/vite.dev" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#bluesky-icon"></use>
-                </svg>
-                Bluesky
-              </a>
-            </li>
-          </ul>
-        </div>
-      </section>
+        <main className="flex-1 p-4 md:p-8 overflow-y-auto">
+          {currentPage === "landing" && (
+            <LandingPage
+              onNavigate={handleNavigate}
+              analytics={analytics}
+            />
+          )}
 
-      <div className="ticks"></div>
-      <section id="spacer"></section>
-    </>
-  )
+          {currentPage === "citizen" && (
+            <CitizenDashboard
+              onNavigate={handleNavigate}
+              complaints={complaints}
+            />
+          )}
+
+          {currentPage === "submit" && (
+            <SubmitComplaintPage
+              onNavigate={handleNavigate}
+              onComplaintCreated={loadAllData}
+            />
+          )}
+
+          {currentPage === "track" && (
+            <TrackComplaintPage
+              initialComplaintId={navParams.complaintId || "CIV-2024-00101"}
+              isNew={navParams.newlyCreated}
+            />
+          )}
+
+          {currentPage === "explorer" && (
+            <CommunityExplorerPage
+              complaints={complaints}
+              onNavigate={handleNavigate}
+            />
+          )}
+
+          {currentPage === "analytics" && (
+            <AnalyticsDashboardPage
+              analytics={analytics}
+              predictive={predictive}
+              onNavigate={handleNavigate}
+            />
+          )}
+
+          {currentPage === "admin" && (
+            <AdminDashboardPage
+              complaints={complaints}
+              onRefresh={loadAllData}
+              onNavigate={handleNavigate}
+            />
+          )}
+
+          {currentPage === "assistant" && <AssistantPage />}
+
+          {currentPage === "environmental" && (
+            <EnvironmentalPage
+              data={environmental}
+              onNavigate={handleNavigate}
+            />
+          )}
+
+          {currentPage === "about" && <AboutPage />}
+        </main>
+      </div>
+    </div>
+  );
 }
 
-export default App
+export default App;
